@@ -1,0 +1,13 @@
+[package]
+name = "stellar-bit-spacecraft-builder"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ellipsoid = {git="https://github.com/patrik-cihal/ellipsoid"}
+strum = { version = "0.24", features = ["derive"] }
+tokio = { version="1.28", features=["rt-multi-thread",] }
+stellar-bit-core = { git = "https://github.com/stellar-bit/core/"}
+clipboard = "0.5.0"
