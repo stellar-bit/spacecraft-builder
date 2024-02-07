@@ -7,3 +7,4 @@ Visual tool for building spacecrafts and generating their JSON.
 - egui windows
 - `right click` - unselect component
 - `r` - rotate selected component
+- `left click` - place down selected component
