@@ -14,11 +14,12 @@ const BACKGROUND_Z: f32 = 0.99;
 pub enum SpacecraftTextures {
     #[default]
     White,
-    BlockComponent,
+    SteelBlockComponent,
     KineticWeaponComponent,
     MissileWeaponComponent,
     RaptorEngineComponent,
-    CentralComponent
+    CentralBlockComponent,
+    CircleGrad
 }
 
 type Txts = SpacecraftTextures;
@@ -125,10 +126,10 @@ fn component_shape(world_gtransform: GTransform, component: &ComponentPlaceholde
 
     let texture = match component.component_type {
         ComponentType::KineticWeapon => Txts::KineticWeaponComponent,
-        ComponentType::Central => Txts::CentralComponent,
+        ComponentType::Central => Txts::CentralBlockComponent,
         ComponentType::MissileLauncher => Txts::MissileWeaponComponent,
         ComponentType::RaptorEngine => Txts::RaptorEngineComponent,
-        ComponentType::SteelBlock => Txts::BlockComponent,
+        ComponentType::SteelBlock => Txts::SteelBlockComponent,
     };
 
     Shape::from_square()
@@ -261,6 +262,6 @@ impl SpacecraftBuilderApp {
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
-pub async fn run() {
+pub fn run() {
     ellipsoid::run::<SpacecraftTextures, SpacecraftBuilderApp>();
 }
