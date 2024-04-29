@@ -12,6 +12,7 @@ Visual tool for building spacecrafts and generating their JSON.
 ## How to use
 ### Easy install
 1. Run the cmd: `cargo install --git https://github.com/stellar-bit/spacecraft-builder/` in your terminal
+2. Then run with cmd: `stellar-bit-spacecraft-builder`
 
  ### Or build yourself
  1. Clone repository: `git clone https://github.com/stellar-bit/spacecraft-builder/`
