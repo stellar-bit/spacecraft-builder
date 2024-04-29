@@ -1,38 +1,25 @@
-#![feature(async_fn_in_trait)]
-
-
-use std::sync::Arc;
-
 use clipboard::{ClipboardProvider, ClipboardContext};
 use ellipsoid::prelude::{
     winit::event::{ElementState, VirtualKeyCode},
-    *, egui::Label,
+    *
 };
 use stellar_bit_core::prelude::*;
+use tokio::runtime::Runtime;
 
 const SPACECRAFT_Z: f32 = 0.2;
 const BACKGROUND_Z: f32 = 0.99;
 
-#[repr(u32)]
-#[derive(Default, Clone, Copy, strum::Display, strum::EnumIter, Debug)]
+#[derive(Default, Clone, strum::EnumIter, Debug, Textures)]
 #[strum(serialize_all = "snake_case")]
 pub enum SpacecraftTextures {
     #[default]
     White,
     BlockComponent,
-    LaserWeaponComponent,
+    KineticWeaponComponent,
     MissileWeaponComponent,
     RaptorEngineComponent,
     CentralComponent
 }
-
-impl Into<u32> for SpacecraftTextures {
-    fn into(self) -> u32 {
-        self as u32
-    }
-}
-
-impl Textures for SpacecraftTextures {}
 
 type Txts = SpacecraftTextures;
 
@@ -43,12 +30,19 @@ pub struct SpacecraftBuilderApp {
     zoom: f32,
     mouse_pos: Vec2,
     orientation: Orientation,
-    json_text_selected: bool
+    _json_text_selected: bool,
+    _rt: Runtime
 }
 
 impl App<Txts> for SpacecraftBuilderApp {
-    async fn new(window: winit::window::Window) -> Self {
-        let graphics = Graphics::new(window).await;
+    fn new(window: winit::window::Window) -> Self {
+        let rt = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+
+        let graphics = rt.block_on(Graphics::new(window));
+
         Self {
             graphics,
             spacecraft_structure: SpacecraftStructure::new(),
@@ -56,7 +50,8 @@ impl App<Txts> for SpacecraftBuilderApp {
             zoom: 0.15,
             mouse_pos: vec2(0., 0.),
             orientation: Orientation::Up,
-            json_text_selected: false
+            _json_text_selected: false,
+            _rt: rt
         }
     }
 
@@ -68,7 +63,7 @@ impl App<Txts> for SpacecraftBuilderApp {
         &mut self.graphics
     }
 
-    fn update(&mut self, dt: f32) {}
+    fn update(&mut self, _dt: f32) {}
 
     fn draw(&mut self) {
         let camera = GTransform::from_inflation(self.zoom);
@@ -129,11 +124,11 @@ fn component_shape(world_gtransform: GTransform, component: &ComponentPlaceholde
         .stretch(component.component_type.scale().as_vec2());
 
     let texture = match component.component_type {
-        ComponentType::LaserWeapon => SpacecraftTextures::LaserWeaponComponent,
-        ComponentType::Central => SpacecraftTextures::CentralComponent,
-        ComponentType::MissileLauncher => SpacecraftTextures::MissileWeaponComponent,
-        ComponentType::RaptorEngine => SpacecraftTextures::RaptorEngineComponent,
-        ComponentType::SteelBlock => SpacecraftTextures::BlockComponent,
+        ComponentType::KineticWeapon => Txts::KineticWeaponComponent,
+        ComponentType::Central => Txts::CentralComponent,
+        ComponentType::MissileLauncher => Txts::MissileWeaponComponent,
+        ComponentType::RaptorEngine => Txts::RaptorEngineComponent,
+        ComponentType::SteelBlock => Txts::BlockComponent,
     };
 
     Shape::from_square()
@@ -212,7 +207,7 @@ impl SpacecraftBuilderApp {
         }
     }
     fn draw_menus(&mut self) {
-        let weapons = vec![ComponentType::LaserWeapon];
+        let weapons = vec![ComponentType::KineticWeapon];
         let engines = vec![ComponentType::RaptorEngine];
         let blocks = vec![ComponentType::SteelBlock, ComponentType::Central];
 
@@ -252,10 +247,10 @@ impl SpacecraftBuilderApp {
                 self.spacecraft_structure.tags.push(String::new());
             }
 
-            let mut json = serde_json::to_string(&self.spacecraft_structure).unwrap();
+            let json = serde_json::to_string(&self.spacecraft_structure).unwrap();
             if ui.button("Copy JSON").clicked() {
                 let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
-                ctx.set_contents(json.clone());
+                ctx.set_contents(json.clone()).unwrap();
             }
             ui.collapsing("JSON", |ui| {
                 ui.label(json);
@@ -267,5 +262,5 @@ impl SpacecraftBuilderApp {
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 pub async fn run() {
-    ellipsoid::run::<SpacecraftTextures, SpacecraftBuilderApp>().await;
+    ellipsoid::run::<SpacecraftTextures, SpacecraftBuilderApp>();
 }
